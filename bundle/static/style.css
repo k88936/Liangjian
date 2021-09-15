@@ -1,0 +1,285 @@
+html,
+body,
+div,
+span,
+applet,
+object,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+a,
+abbr,
+acronym,
+address,
+big,
+cite,
+code,
+del,
+dfn,
+em,
+img,
+ins,
+kbd,
+q,
+s,
+samp,
+small,
+strike,
+strong,
+sub,
+sup,
+tt,
+var,
+b,
+u,
+i,
+center,
+dl,
+dt,
+dd,
+ol,
+ul,
+li,
+fieldset,
+form,
+label,
+legend,
+table,
+caption,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td,
+article,
+aside,
+canvas,
+details,
+embed,
+figure,
+figcaption,
+footer,
+header,
+hgroup,
+menu,
+nav,
+output,
+ruby,
+section,
+summary,
+time,
+mark,
+audio,
+video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  font-weight: normal;
+  vertical-align: baseline;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: normal;
+  font-size: 100%;
+}
+li {
+  list-style: none;
+}
+.clearfix:after {
+  visibility: hidden;
+  display: block;
+  font-size: 0;
+  content: " ";
+  clear: both;
+  height: 0;
+}
+@font-face {
+  font-family: "iconfont";
+  src: url("./fonts/iconfont.woff2?t=1627884435604") format("woff2"),
+    url("./fonts/iconfont.woff?t=1627884435604") format("woff"),
+    url("./fonts/iconfont.ttf?t=1627884435604") format("truetype"),
+    url("./fonts/iconfont.svg?t=1627884435604#iconfont") format("svg");
+}
+.iconfont {
+  font-family: "iconfont" !important;
+  font-size: 20px;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+html,
+body,
+#map {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial,
+    PingFang SC, Noto Sans, Roboto, Microsoft Yahei, sans-serif,
+    Apple Color Emoji, Segoe UI Emoji;
+}
+.button-list {
+  right: 360px;
+  left: auto;
+  bottom: 30px;
+  width: 30px;
+  background: #cbdeff;
+  border: 1px solid rgb(144, 144, 144);
+  border-bottom: 0;
+}
+.button-list span {
+  display: inline-block;
+  width: 28px;
+  height: 30px;
+  border-bottom: 1px solid rgb(144, 144, 144);
+  line-height: 30px;
+  text-align: center;
+  cursor: pointer;
+}
+.button-list span.active {
+  color: #a56a0b;
+}
+.extend-setting {
+  font-size: 14px;
+  margin: 10px 0;
+}
+.map {
+  height: calc(100vh);
+  width: calc(100vw - 351px);
+}
+.slider {
+  position: absolute;
+  overflow: hidden;
+  font-size: 14px;
+  background: #fff;
+  border-left: 1px solid #eee;
+  top: 0px;
+  bottom: 0px;
+  right: 0px;
+  width: 350px;
+  height: calc(100vh - 20px);
+  padding: 10px 20px;
+}
+.slider .card {
+  border-radius: 4px;
+  margin: 0 0 10px;
+}
+.result_modal .modal-body p {
+  margin: 20px 0;
+}
+/* .slider .chooseMap {
+  height: 110px;
+} */
+/* .slider .setting {
+  height: 20%;
+}
+.slider .mnqInfo {
+  height: 20%;
+} */
+.slider .extend {
+  margin: 0 0 10px;
+}
+.slider .extend p {
+  cursor: pointer;
+}
+.slider .extend .iconfont {
+  font-size: 14px;
+  line-height: 14px;
+  vertical-align: middle;
+}
+.slider .info {
+  min-height: 10%;
+}
+.slider .card-header {
+  height: 40px;
+  line-height: 40px;
+  border-bottom: 1px solid #ccc;
+  padding: 0 20px;
+}
+.slider .card-body {
+  padding: 20px;
+}
+.slider .chooseMap .select {
+  height: 23px;
+  border-color: #ccc;
+  border-radius: 4px;
+  text-align: left;
+  vertical-align: middle;
+}
+.slider .chooseMap .choose {
+  display: inline-block;
+  text-align: center;
+  width: 50px;
+  height: 21px;
+  line-height: 21px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  vertical-align: middle;
+  cursor: pointer;
+  margin: 0 0 0 10px;
+}
+.slider .dataBtn {
+  padding: 0;
+}
+.slider .dataBtn li {
+  float: left;
+  padding: 6px 20px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  margin-right: 18px;
+  cursor: pointer;
+}
+.slider .info .card-header .right {
+  float: right;
+}
+.slider .info .infoBody {
+  word-wrap: break-word;
+  width: 310px;
+}
+.slider .info .infoBody p {
+  margin: 0 0 5px;
+}
+.slider .setting-item {
+  padding: 0;
+}
+.slider .setting-item li {
+  margin-bottom: 16px;
+}
+.slider .setting-item li span {
+  margin-right: 10px;
+}
+.slider .setting-item li select {
+  border-color: #ccc;
+  border-radius: 4px;
+  width: 80px;
+}
+.slider .mnqInfo .card-header .right {
+  float: right;
+}
+.slider .mnqInfo .mnqInfo-con {
+  margin: 10px 0 0;
+  border-top: 1px solid #eee;
+}
+.slider .mnqInfo .mnqInfo-con li {
+  padding: 6px 0;
+}
+.active {
+  color: #4f91ff;
+}
+.robotInfo p,
+.shelfInfo p {
+  margin: 10px 0;
+}

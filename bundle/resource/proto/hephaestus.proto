@@ -1,0 +1,668 @@
+syntax = "proto3";
+option java_package = "com.geekplus.hephaestus.rpc.generated";
+
+option java_multiple_files = true;
+//创建的javaBean的文件名
+//option java_outer_classname = "HephestusRpc";
+// 可以生成rpc接口
+option java_generic_services = true;
+
+service PythonAlgoService {
+  rpc skuGroup(SkuGroupContext) returns (SkuGroupResult){}
+  rpc skuRelation(SkuRelationContext) returns (SkuRelationResult){}
+  rpc skuSalesPredict(SkuSalePredictionContext) returns (SkuSalePredictionResult){}
+}
+
+service JavaAlgoService {
+    rpc orderAllocation(OrderAllocationContext) returns (OrderAllocationResult) ;
+    rpc orderGroup(OrderGroupContext) returns (OrderGroupResult) ;
+    rpc inventoryHit(InventoryHitContext) returns (InventoryHitResult) ;
+    rpc repRecommend(RepRecommendContext) returns (RepRecommendResult) ;
+    rpc skuRelation(SkuRelationContext) returns(SkuRelationResult);
+}
+
+service PickSimulatorService{
+    rpc run(PickSimulationContext) returns (PickSimulationResult) ;
+}
+
+
+//机器人模拟服务
+service RobotSimulationService {
+    rpc createEnvironment(EnvironmentCreateContext) returns (EnvironmentCreateResult);
+    rpc nextStep(EnvironmentUpdateContext) returns(EnvironmentDetail);
+    rpc closeEnvironment(EnvironmentQuery) returns(EnvironmentDetail);
+}
+
+message Sku {
+    string skuCode = 1;
+    string batchCode = 2;
+    string skuName = 3;
+    int32  skuVolume = 4;
+    int32  quantity = 5;
+    int32  skuClusterId = 6;
+    int32 grossWeight = 7;
+    double skuPrices = 8;
+    int64 volume = 9;
+    int64 hot = 10;
+    int32 distributionNumber = 11;
+    repeated string repShelfBinClassPriority = 12;
+}
+
+message Shelf {
+    string code = 1;
+    string shelfType = 2;
+    double score = 3;
+    repeated double placement = 4;
+    int32 logicAreaId = 5;
+    double repScore = 6;
+    double placementScore = 7;
+    repeated double location = 8;
+    double pickTime = 9;
+    int64 robotId = 10;
+}
+
+message InventoryBin{
+    string skuCode = 1;
+    string batchCode = 2;
+    string binCode = 3;
+    string shelfCode = 4;
+    int32 logicAreaId = 5;
+    int32 availableNum = 6;
+    string customerCode = 7;
+    int32 inventoryStatus = 8;
+}
+
+
+message Station {
+    int32 id = 1;
+    int32 totalSeedingBinNum = 2;
+    int32 idleSeedingBinNum = 3;
+    repeated string shelves = 4;
+    repeated string otherStationShelves = 5;
+    repeated string otherStationForbiddenShelves = 6;
+    repeated string shelfFaces = 7;
+    repeated double entryPoint = 8;
+    int32 queueSize = 9;
+    int32 queuingTasks = 10;
+    repeated int64 taskQueue = 11;
+}
+
+message PickOrderAllocateConstraint {
+    string strategyAllocateCode = 2;
+    int32 warehouseAreaId = 3;
+    string shelfType = 4;
+    int32 shelfAllocationOrder = 5;
+    int32 inventoryStatus = 6;
+    int32 zindex = 7;
+}
+
+message PickOrderDetail {
+    int64 pickOrderDetailId = 1;
+    int64 pickOrderId = 2;
+    string skuCode = 3;
+    string batchCode = 4;
+    int32  quantity = 5;
+    int32 group = 6;
+    int32 orderGroupId = 7;
+    int32 logicAreaId = 8;
+    string ownerCode = 9;
+    int32 inventoryStatus = 10;
+    string orderNo = 11;
+    repeated PickOrderAllocateConstraint containts = 12;
+}
+
+message PickOrder {
+    int64 pickOrderId = 1;
+    string orderNo = 7;
+    string ownerCode = 2;
+    repeated PickOrderDetail details = 3;
+    int64 createTime = 4;
+    int32 containerType = 5;
+    string seedingBinNo = 6;
+}
+
+
+message SkuRelationContext {
+    repeated PickOrder pickOrders = 1;
+}
+
+message SkuRelationTuple{
+    string sku1 = 1;
+    string sku2 = 2;
+    double relation = 3;
+}
+
+message SkuRelationResult {
+    repeated Sku skus = 1;
+    repeated SkuRelationTuple relationList = 2;
+}
+
+message SkuGroupContext {
+    repeated PickOrder pickOrders = 1;
+    int32 clusterNumber = 2;
+    string algo = 3;
+    int32 n_components = 4;
+    int32 n_jobs = 5;
+    int32 n_neighbours = 6;
+}
+
+message SkuGroupResult {
+    repeated Sku skus = 1;
+}
+
+message SkuSale {
+    Sku sku = 1;
+    int32 saleQuantity = 2;
+    int64 timeIndex = 3;
+}
+
+message SkuSalePredictionContext{
+    int32 predictTime = 3;
+    repeated SkuSale skuSales = 4;
+    repeated Sku skuList = 5;
+    repeated PickOrder pickOrders = 6;
+    map<string, string> params = 7;
+}
+
+message SkuSalePredictionResult{
+    repeated SkuSale skuSales = 1;
+}
+
+
+message InventoryHitContext{
+    repeated PickOrderDetail details = 1;
+    repeated InventoryBin bins = 2;
+    string shelfPoolHitMode = 3;
+    repeated string shelfPools = 4;
+    bool hitOnInventoryCopy = 5;
+    int32 stationId = 6;
+    repeated Station allStations = 7;
+}
+
+message OrderHit{
+    PickOrder order = 1;
+    int32 stationId = 2;
+    repeated string shelves = 3;
+}
+
+message InventoryHit{
+    string batchCode = 1;
+    string binCode = 2;
+    int32 hitNum = 3;
+    int64 orderDetailId = 4;
+    string orderNo = 5;
+    string skuCode = 6;
+    string shelfCode = 7;
+    string shelfFaceCode = 8;
+    string logicalAreaId = 9;
+}
+
+message InventoryHitResult {
+    repeated InventoryHit inventoryHits = 1;
+}
+
+message OrderAllocationContext{
+    repeated PickOrder orders = 1;
+    repeated Station stations = 2;
+    repeated InventoryBin inventories = 3;
+    repeated Shelf shelves = 4;
+    bool useShelfPool = 5  ;
+    repeated InventoryHit preHits = 6;
+    bool usePreHits = 7;
+    bool restrictShelfFaceForRecommendOrderHit = 8;
+}
+
+message OrderAllocationResult{
+    repeated OrderHit orderHits = 1;
+    repeated InventoryHit inventoryHits = 2;
+}
+
+message OrderGroupContext{
+    repeated PickOrder orders = 1;
+    repeated Sku skus = 2;
+    repeated Shelf shelves = 3;
+    repeated Station stations = 4;
+    repeated InventoryHit preHits = 5;
+    bool usePreHits = 6 ;
+    repeated InventoryBin inventoryBins  = 7;
+    int32 maxOrderGroupNum = 8;
+    OrderGroupConfig groupConfig = 9;
+}
+
+message OrderGroupConfig {
+    int32 skuNumberLimit = 1;
+    int32 totalAmountLimit = 2;
+    int32 volumeLimit = 3;
+    int32 weightLimit = 4;
+    int32 moneyLimit = 5;
+    int32 orderAmountUpperLimit = 6;
+    int32 orderAmountLowerLimit = 7;
+    int32 shelfFaceWeight = 8;
+    double randWeight = 9 ;
+}
+
+message PickOrderGroup{
+    repeated PickOrder orders = 1;
+}
+
+message OrderGroupResult{
+    repeated PickOrderGroup orderGroups = 1;
+    repeated InventoryHit preHits = 2;
+}
+
+//上架算法输入
+message ShelfBin{
+    string shelfCode = 1;
+    string binCode = 2;
+    string classCode = 3;
+    int64 volume = 4;
+    int64 occupyVolume = 5;
+}
+
+message PutAwayDetail{
+    int64 putAwayId = 1;
+    string skuCode = 2;
+    int32 quantity = 3;
+    repeated string availableShelves = 4;
+}
+
+message RepRecommendContext{
+    repeated ShelfBin shelfBins = 1;
+    repeated Shelf shelves = 2;
+    repeated Sku skus = 3;
+    int32 recommendShelfNumber = 4;
+    double placementWeight = 5;
+    double shelfVolumeWeight = 6;
+    double abcMatchWeight = 7;
+    double shelfSatisfySkuWeight = 8;
+    double relationSkuWeight = 9;
+    repeated SkuRelationTuple skuRelations = 10;
+    repeated PutAwayDetail details = 11;
+    repeated InventoryBin inventoryBins = 12;
+}
+
+
+message RepRecommendResult{
+    repeated Shelf recommends = 1;
+}
+
+
+message PickSimulationContext{
+    repeated PickOrder orders = 1;
+    repeated Station stations = 2;
+    repeated InventoryBin inventories = 3;
+    repeated Shelf shelves = 4;
+    bool usePreHit = 5;
+    int32 robotNum = 6;
+    double speedX = 7;
+    string simulationId = 8;
+    bool enableOneByOne = 9;
+    bool enableSimpleGroup = 10;
+    OrderGroupConfig oneSkuOrderGroupConfig = 11;
+    OrderGroupConfig multiSkuOrderGroupConfig = 12;
+    bool enabledPreHitShelfPool = 13;
+    int32 orderGroupTimeSleep = 14;
+    int32 defaultLimitOrderNum = 15;
+    bool enableGroupInPick = 16;
+    bool enabledEmsAlgorithm = 17;
+    bool enabledAllocationOrdersPreHit = 18;
+}
+
+message PickSimulationResult{
+    string simulationId = 1;
+}
+
+
+//地图点
+message MapCell{
+    int32 floorId = 1;
+    string cellCode = 2;
+    repeated int32 index = 4;
+    repeated double location = 5;
+    repeated int32 directionCost = 6;
+    repeated int32 unloadDirectionCost = 8;
+    string cellType = 7;
+}
+
+//机器人
+message Robot {
+    int64 robotId = 1;
+    repeated int32 locationIndex = 2;
+    repeated int32 nextIndex = 12;
+    repeated MapCell path = 3;
+    repeated MapCell assignedPath = 11;
+    double speed = 4;
+    double maxSpeed = 5;
+    double maxAcceleration = 6;
+    double maxDeceleration = 7;
+    bool isBlock = 8;
+    int64 blockByRobot = 9;
+    MapCell blockByMapCell = 10;
+    double position = 13;
+    int64 currentTaskId = 14;
+    string shelfCode = 15;
+    int32 direction = 16;
+    int64 leftWaitTime = 17;
+    int32 shelfActionStatus = 18;
+}
+
+//机器人模拟器相关的类
+message EnvironmentCreateContext {
+    string mapData = 1;
+    repeated Robot robots = 2;
+    repeated Shelf shelves = 14;
+    int64 tickTime = 3;
+    double jumpProb = 4;
+    double jumpNoise = 6;
+    int32 occupyLen = 5;
+    int32 waitBeforeTurn = 7;
+    double speedLow = 8;
+    double speedHigh = 9;
+    int32 waitLow = 10;
+    int32 waitHigh = 11;
+    int32 shelfActionLow = 12;
+    int32 shelfActionHigh = 13;
+    bool useDynamicSpeed = 15;
+}
+
+message EnvironmentQuery{
+    int64 envId = 1;
+}
+
+message EnvironmentCreateResult {
+    int32 errorCode = 1;
+    string errorMsg = 2;
+    EnvironmentDetail detail = 3;
+}
+
+message RobotPathUpdate {
+    int64 robotId = 1;
+    repeated MapCell updatePath = 2;
+    repeated int32 directions = 3;
+}
+
+message TurnAroundRobots {
+    int64 robotId = 1;
+    int32 targetDirection = 2;
+}
+
+message ShelfUpOrDown {
+    int64 robotId = 1;
+    bool upOrDown = 2;
+}
+
+message EnvironmentUpdateContext{
+    int64 envId = 1;
+    bool nextStep = 2;
+    repeated RobotPathUpdate updateRobots = 3;
+    repeated MapCell updateMapCells = 6;
+    repeated TurnAroundRobots turnAroundRobots = 7;
+    repeated ShelfUpOrDown shelfUpOrDowns = 8;
+}
+
+
+message EnvironmentDetail{
+    int64 envId = 1;
+    int64 timestamp = 2;
+    int32 errorCode = 5;
+    string errorMsg = 6;
+    repeated MapCell mapCells = 3;
+    repeated Robot allRobots = 4;
+    repeated Shelf shelves = 9;
+    int32 width = 7;
+    int32 height = 8;
+}
+
+
+//拣货工作站+机器人模拟服务
+service RobotTaskSimulationService{
+    rpc createEnvironment(TaskEnvironmentCreateContext) returns (TaskEnvironmentDetail);
+    rpc nextStep(TaskEnvironmentUpdateContext) returns(TaskEnvironmentDetail);
+    rpc closeEnvironment(EnvironmentQuery) returns(TaskEnvironmentDetail);
+    rpc calculatePath(CalculatePathContext) returns (CalculatePathResult);
+}
+message CalculatePathContext{
+    int64 robotId = 1;// 机器人id
+    repeated int32 startPoint = 2;//起点索引数组x\y
+    repeated int32 endPoint = 3;//终点索引数组x\y
+    bool load = 4;//是否负载
+    int64 envId = 5;
+}
+message CalculatePathResult{
+    repeated MapCell path = 1;
+    string info = 2;
+}
+message TaskEnvironmentCreateContext {
+    string mapData = 1;
+    repeated Robot robots = 2;
+    int64 tickTime = 3;
+    int32 pickTimeStdSec = 6;   //拣货时间标准差（秒）
+    repeated Shelf shelves = 7;
+    double jumpProb = 8;
+    double jumpNoise = 9;
+    int32 occupyLen = 10;
+    int32 waitBeforeTurn = 11;
+    double speedLow = 12;
+    double speedHigh = 13;
+    int32 waitLow = 14;
+    int32 waitHigh = 15;
+}
+
+message RobotTask {
+    int64 robotId = 1;
+    int64 taskId = 2;
+    int32 stationId = 3;
+    string shelfCode = 4;
+    string status = 5;
+}
+
+
+message TaskEnvironmentUpdateContext{
+    int64 envId = 1;
+    bool nextStep = 2;
+    repeated RobotTask newTasks = 3;
+}
+
+
+message TaskEnvironmentDetail{
+    int64 envId = 1;
+    int64 timestamp = 2;
+    int32 errorCode = 5;
+    string errorMsg = 6;
+    repeated MapCell mapCells = 3;
+    repeated Robot allRobots = 4;
+    repeated Shelf shelves = 7;
+    repeated RobotTask tasks = 8;
+    repeated Station stations = 9;
+    int32 width = 10;
+    int32 height = 11;
+}
+
+message ShelfTask{
+    int64 taskId = 1;
+    int32 stationId = 2;
+    string shelfCode = 3;
+    string status = 4;
+    int64 pickedTime = 5;
+}
+
+message ShelfTaskList{
+    repeated ShelfTask shelfTasks = 1;
+}
+
+message TaskAlgorithmDetail{
+    int64 envId = 1;
+    int64 timestamp = 2;
+    repeated MapCell mapCells = 3;
+    repeated Robot allRobots = 4;
+    map <int32, ShelfTaskList> shelfTasks = 5;
+    repeated Shelf shelves = 7;
+    repeated RobotTask tasks = 8;
+    repeated Station stations = 9;
+    int32 width = 10;
+    int32 height = 11;
+}
+
+// =========================================================================
+// 中间层gRPC接口定义
+
+//机器人算法服务
+service RobotAlgorithmService {
+    rpc execute(RobotEnvironmentContext) returns (RobotAlgorithmResult){}
+}
+
+message RobotEnvironmentContext{
+    int64 time = 1;
+    repeated RobotWithTask robots = 2;
+    repeated MapCell mapCells = 3;
+    repeated Task tasks = 4;
+    repeated ShelfExtend shelves = 8;
+    int32 width = 5;
+    int32 height = 6;
+    bool isInit = 7;
+}
+
+message RobotAlgorithmResult{
+    repeated RobotAlgorithmUpdates robotAlgorithmUpdates = 1;
+}
+
+message RobotAlgorithmUpdates{
+    int64 robotId = 1;
+    repeated MapCell cells = 2;
+    int32 direction = 3;
+    int32 ShelfUpOrDown = 4;
+}
+
+
+//机器人路径规划任务信息
+message Task{
+    int64 robotId = 1;
+    repeated int32 index = 2;
+    repeated int32 dest = 3;
+    int32 direction = 4;
+    int32 endDirection = 5;
+
+}
+
+//机器人任务算法服务
+service TaskAlgorithmService {
+    rpc execute(TaskAlgorithmDetail) returns (TaskEnvironmentUpdateContext){}
+}
+
+// 货架目标区域
+message ShelfExtend {
+    string code = 1;
+    repeated double placement = 4;
+    repeated double location = 8;
+    int64 robotId = 10;   
+    repeated MapCell targetArea = 11;
+}
+
+
+// 机器人扩展任务信息
+message RobotWithTask {
+    int64 robotId = 1;
+    repeated int32 locationIndex = 2;
+    repeated int32 nextIndex = 12;
+    repeated MapCell path = 3;
+    repeated MapCell assignedPath = 11;
+    double speed = 4;
+    double maxSpeed = 5;
+    double maxAcceleration = 6;
+    double maxDeceleration = 7;
+    bool isBlock = 8;
+    int64 blockByRobot = 9;
+    MapCell blockByMapCell = 10;
+    double position = 13;
+    int64 currentTaskId = 14;
+    string shelfCode = 15;
+    int32 direction = 16;
+    int64 leftWaitTime = 17;
+    int32 shelfActionStatus = 18;
+    repeated int32 destIndex = 19;
+    int32 endDirection = 20;
+}
+
+
+// 货到人赛题算法服务
+service ShelfToManTaskAlgorithmService {
+    rpc execute(ShelfToManTaskAlgorithmDetail) returns (ShelfToManTasAlgorithmResult){}
+}
+// 算法接收参数
+message ShelfToManTaskAlgorithmDetail{
+    int64 time = 1;
+    repeated Robot robots = 2;
+    repeated MapCell mapCells = 3;
+    map <int32, ShelfToManTaskList> tasks = 4;
+    repeated ShelfWithTask shelves = 8;
+    repeated ShelfToManStation stations = 9;
+    int32 width = 5;
+    int32 height = 6;
+    bool isInit = 7;
+}
+
+// 算法返回结果
+message ShelfToManTasAlgorithmResult{
+    repeated RobotAlgorithmUpdates robotAlgorithmUpdates = 1;
+    repeated PickAlgorithmUpdate pickAlgorithmUpdates = 2;
+    repeated TurnAlgorithmUpdate turnAlgorithmUpdates = 3;
+    repeated TaskAlgorithmUpdate taskAlgorithmUpdates = 4;
+}
+
+// 货架状态更新
+message TaskAlgorithmUpdate{
+    int64 taskId = 1;
+    string status = 2;
+    int32 stationId = 3;
+}
+
+// 货架状态更新
+message PickAlgorithmUpdate{
+    Robot robot = 1;
+    ShelfToManTask task = 2;
+}
+
+// 任务状态更新
+message TurnAlgorithmUpdate{
+    Robot robot = 1;
+    ShelfToManTask task = 2;
+}
+
+// 货到人货架信息
+message ShelfWithTask {
+    string code = 1;
+    string status = 2;
+    string shelfFaceCode = 3;
+    repeated double placement = 4;
+    repeated double location = 8;
+    double pickTime = 9;
+    int64 robotId = 10;
+    repeated MapCell targetArea = 11;
+}
+
+// 货到人任务信息
+message ShelfToManTaskList{
+    repeated ShelfToManTask tasks = 1;
+}
+message ShelfToManTask {
+    int64 robotId = 1;
+    int64 taskId = 2;
+    int32 stationId = 3;
+    string shelfCode = 4;
+    string status = 5;
+    double pickTime = 6;
+    string shelfFaceCode = 7;
+}
+
+message ShelfToManStation {
+    int32 id = 1;
+    int32 totalSeedingBinNum = 2;
+    int32 idleSeedingBinNum = 3;
+    repeated string shelves = 4;
+    repeated MapCell entryPoint = 8;
+    repeated MapCell turnPoint = 5;
+    repeated MapCell turnEntryPoint = 7;
+    int32 queueSize = 9;
+    int32 queuingTasks = 10;
+    repeated int64 taskQueue = 11;
+}

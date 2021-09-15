@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      html,
+      body,
+      #map {
+        width: 100%;
+        height: 100%;
+        padding: 0;
+        margin: 0;
+      }
+      html,
+      body,
+      div,
+      span,
+      applet,
+      object,
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6,
+      p,
+      blockquote,
+      pre,
+      a,
+      abbr,
+      acronym,
+      address,
+      big,
+      cite,
+      code,
+      del,
+      dfn,
+      em,
+      img,
+      ins,
+      kbd,
+      q,
+      s,
+      samp,
+      small,
+      strike,
+      strong,
+      sub,
+      sup,
+      tt,
+      var,
+      b,
+      u,
+      i,
+      center,
+      dl,
+      dt,
+      dd,
+      ol,
+      ul,
+      li,
+      fieldset,
+      form,
+      label,
+      legend,
+      table,
+      caption,
+      tbody,
+      tfoot,
+      thead,
+      tr,
+      th,
+      td,
+      article,
+      aside,
+      canvas,
+      details,
+      embed,
+      figure,
+      figcaption,
+      footer,
+      header,
+      hgroup,
+      menu,
+      nav,
+      output,
+      ruby,
+      section,
+      summary,
+      time,
+      mark,
+      audio,
+      video {
+        margin: 0;
+        padding: 0;
+        border: 0;
+        font-size: 100%;
+        font: inherit;
+        font-weight: normal;
+        vertical-align: baseline;
+      }
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6 {
+        font-weight: normal;
+        font-size: 100%;
+      }
+      li {
+        list-style: none;
+      }
+      .clearfix:after {
+        visibility: hidden;
+        display: block;
+        font-size: 0;
+        content: " ";
+        clear: both;
+        height: 0;
+      }
+      #map {
+        height: calc(100vh);
+        width: calc(100vw - 391px);
+      }
+      .slider {
+        position: absolute;
+        background: #fff;
+        border-left: 1px solid #eee;
+        top: 0px;
+        bottom: 0px;
+        right: 0px;
+        width: 350px;
+        height: calc(100vh - 40px);
+        padding: 20px;
+        overflow: hidden;
+      }
+      .slider .card {
+        box-shadow: 0 0 15px #ccc;
+        border-radius: 4px;
+        margin-bottom: 5%;
+        overflow-x: hidden;
+        overflow-y: scroll;
+      }
+      /* .slider .chooseMap {
+  height: 110px;
+} */
+      /* .slider .setting {
+  height: 20%;
+}
+.slider .mnqInfo {
+  height: 20%;
+} */
+      .slider .info {
+        min-height: 30%;
+      }
+      .slider .card-header {
+        height: 40px;
+        line-height: 40px;
+        border-bottom: 1px solid #ccc;
+        padding: 0 20px;
+      }
+      .slider .card-body {
+        padding: 20px;
+      }
+      .slider .chooseMap .select {
+        padding: 0 20px;
+        height: 30px;
+        border-color: #ccc;
+        border-radius: 4px;
+        text-align: left;
+      }
+      .slider .chooseMap .choose {
+        display: inline-block;
+        text-align: center;
+        width: 50px;
+        height: 26px;
+        line-height: 26px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        vertical-align: middle;
+        cursor: pointer;
+      }
+      .slider .dataBtn {
+        padding: 0;
+      }
+      .slider .dataBtn li {
+        float: left;
+        padding: 6px 20px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        margin-right: 18px;
+        cursor: pointer;
+      }
+      .slider .info .card-header ul {
+        padding: 0;
+        overflow: hidden;
+      }
+      .slider .info .card-header li:nth-child(1) {
+        box-sizing: border-box;
+      }
+      .slider .info .card-header .infoTitle {
+        display: flex;
+      }
+      .slider .info .card-header li {
+        flex: 1;
+        float: left;
+        text-align: center;
+        border-right: 1px solid #ccc;
+        cursor: pointer;
+      }
+      .slider .info .card-header li:last-child {
+        border-right: none;
+      }
+      .slider .info .infoBody {
+        word-wrap: break-word;
+        height: calc(100% - 80px);
+        width: 310px;
+        overflow-y: scroll;
+      }
+      .slider .info .infoBody .shelfInfo {
+        display: none;
+      }
+      .slider .setting-item {
+        padding: 0;
+      }
+      .slider .setting-item li {
+        margin-bottom: 16px;
+      }
+      .slider .setting-item li span {
+        margin-right: 10px;
+      }
+      .slider .setting-item li select {
+        border-color: #ccc;
+        border-radius: 4px;
+        width: 80px;
+      }
+      .slider .mnqInfo .mnqInfo-con li {
+        padding: 6px 0;
+      }
+      .active {
+        color: #4f91ff;
+      }
+      .robotInfo p,
+      .shelfInfo p {
+        margin: 10px 0;
+      }
+    </style>
+    <title>模拟器</title>
+  </head>
+  <body>
+    <div id="map"></div>
+    <div class="slider">
+      <div class="card mnqInfo">
+        <div class="card-header">
+          <h2>模拟器信息</h2>
+        </div>
+        <div class="card-body">
+          <ul class="setting-item">
+            <li class="chooseMap">
+              <span>地图选择：</span>
+              <select class="select" id="mapSelect"></select>
+              <span class="choose">选择</span>
+            </li>
+            <li>
+              <span>运行间隔</span>
+              <select class="select selectTime">
+                <option value="100">100毫秒</option>
+                <option value="300" selected>300毫秒</option>
+                <option value="500">500毫秒</option>
+                <option value="1000">1000毫秒</option>
+                <option value="2000">2000毫秒</option>
+              </select>
+            </li>
+            <li>
+              <span>机器人路径显示</span
+              ><input type="checkbox" class="checkbox" />
+            </li>
+          </ul>
+          <ul class="dataBtn clearfix" id="btns">
+            <li class="start">开始</li>
+            <li class="reset">重置</li>
+          </ul>
+          <hr />
+
+          <ul class="mnqInfo-con">
+            <li><span>当前时间：</span><span class="currentTime"></span></li>
+            <li><span>结果：</span><span class="result"></span></li>
+            <li><span>信息提示：</span><span class="message"></span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="card info">
+        <div class="card-header clearfix">
+          <ul class="infoTitle">
+            <li class="active robot titles" data-type="robot">机器人</li>
+            <li class="shelf titles" data-type="shelf">货架</li>
+            <li class="station titles" data-type="station">工作站</li>
+          </ul>
+        </div>
+        <div class="card-body infoBody">
+          <div class="robotInfo tab"></div>
+          <div class="shelfInfo tab"></div>
+          <div class="stationInfo tab"></div>
+        </div>
+      </div>
+    </div>
+    <script src="./static/libs/pixi.min.js"></script>
+    <script src="./static/libs/viewport.js"></script>
+    <script src="./static/main_module.js" type="module"></script>
+  </body>
+</html>
