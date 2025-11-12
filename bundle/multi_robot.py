@@ -1,10 +1,11 @@
-from resource.serve.multi_robot.web import run
-from threading import Thread
-import webbrowser
 # import os
 import subprocess
+import webbrowser
 # from urllib.request import pathname2url
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from threading import Thread
+
+from bundle.resource.serve.multi_robot.web import run
 
 
 def open_web():

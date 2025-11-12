@@ -1,15 +1,15 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-import grpc
 import time
 from concurrent import futures
+
+import grpc
+
+import hephaestus_pb2
+import hephaestus_pb2_grpc
 # 在这里引入自己设计的算法文件
 from algorithm import Dfs
 from type import AlgorithmResult, Request
-
-import hephaestus_pb2_grpc
-import hephaestus_pb2
-
 
 _HOST = '127.0.0.1'
 _PORT = '10022'
@@ -62,29 +62,24 @@ class AlgoService(hephaestus_pb2_grpc.RobotAlgorithmServiceServicer):
         # 初始化返回结果对象
         result = hephaestus_pb2.RobotAlgorithmResult()
 
-        for path in algorithm_result.paths:
-            if len(path.cells) == 1:
+        for action in algorithm_result.paths:
+            if len(action.cells) == 1:
                 continue
             # 为需要规划路径的机器人创建结果容器
             update = hephaestus_pb2.RobotAlgorithmUpdates()
             # 传入机器人ID
-            update.robotId = path.robotId
+            update.robotId = action.robotId
             # 添加机器人路径，每个路径点的类型为MapCell
-            for cell in path.cells:
+            for cell in action.cells:
                 update.cells.append(cell)
                 update.direction = 0
-
+            # apply rotation
+            if action.direction != 0:
+                update.direction = action.direction
             # 将机器人结果容器添加到返回结果对象上
             result.robotAlgorithmUpdates.append(update)
 
-        for turnAround in algorithm_result.turnAround:
-            # 为需要规划路径的机器人创建结果容器
-            turnUpdate = hephaestus_pb2.RobotAlgorithmUpdates()
-            # 传入机器人ID
-            turnUpdate.robotId = turnAround.robotId
-            turnUpdate.direction = turnAround.direction
-            result.robotAlgorithmUpdates.append(turnUpdate)
-
+        print(result)
         return result
 
 

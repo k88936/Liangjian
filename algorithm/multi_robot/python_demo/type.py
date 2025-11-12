@@ -1,31 +1,35 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-
-from typing import Protocol, Sequence, List, Optional, Tuple
-
+from dataclasses import dataclass
+from typing import Protocol, Sequence, Tuple
 
 # Type aliases
-Index = Tuple[int, int]  # (x, y)
+Index = Tuple[int, int]
+Position = Tuple[float, float]
+DirectionMask = Tuple[int, int, int, int]
 
+
+# direction:
+#       3
+#   2       4
+#       1
 
 class MapCell(Protocol):
     floorId: int
     cellCode: str
-    index: Sequence[int]
-    location: Sequence[float]
-    directionCost: Sequence[int]
-    cellType: str
+    index: Index
+    location: Position
+    directionCost: DirectionMask
+    cellType: str  # BLOCKED_CELL or not
 
 
 class Robot(Protocol):
     robotId: int
-    locationIndex: Sequence[int]
-    nextIndex: Sequence[int]
-    destIndex: Sequence[int]
-    position: float
-    path: Sequence[MapCell]
+    locationIndex: Index
+    nextIndex: Index
+    destIndex: Index
+    position: float  # 机器人在两个格子中间的状态取值在  0-1  之间
     assignedPath: Sequence[MapCell]
-    isBlock: bool
 
 
 class Request(Protocol):
@@ -37,16 +41,18 @@ class Request(Protocol):
     height: int
 
 
-class TurnAroundUpdate(Protocol):
-    robotId: int
-    direction: int
+@dataclass
+class RobotAction:
+    def __init__(self, robot_id: int, cells: Sequence[MapCell], direction: int = 0):
+        self.robotId = robot_id
+        self.cells = cells
+        self.direction = direction
 
 
-class PathEntry(Protocol):
-    robotId: int
-    cells: Sequence[MapCell]
-
-
-class AlgorithmResult(Protocol):
-    paths: Sequence[PathEntry]
-    turnAround: Sequence[TurnAroundUpdate]
+@dataclass
+class AlgorithmResult:
+    def __init__(
+            self,
+            actions: Sequence[RobotAction],
+    ):
+        self.paths = actions
