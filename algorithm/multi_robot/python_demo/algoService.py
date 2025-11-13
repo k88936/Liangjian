@@ -24,7 +24,7 @@ class AlgoService(hephaestus_pb2_grpc.RobotAlgorithmServiceServicer):
 
     # 每一个timestamp都会调用此方法
     def execute(self, request: Request, context):
-        print(request.time)
+        print(f"[TRACE] Processing timestamp: {request.time}")
         # request说明
         #   request.time        模拟器当前timestamp,类型为int64
         #   request.robots      当前timestamp下的所有机器人的集合，类型为List,每一个元素为Robot的实例
@@ -57,30 +57,32 @@ class AlgoService(hephaestus_pb2_grpc.RobotAlgorithmServiceServicer):
         #     bool isBlock = 8;                     机器人是否被阻挡
 
         # 将信息传给算法
-        algorithm_result: AlgorithmResult = self.algorithm.run(request)
+        try:
+            algorithm_result: AlgorithmResult = self.algorithm.run(request)
 
-        # 初始化返回结果对象
-        result = hephaestus_pb2.RobotAlgorithmResult()
+            # 初始化返回结果对象
+            result = hephaestus_pb2.RobotAlgorithmResult()
 
-        for action in algorithm_result.actions:
-            if len(action.cells) == 1:
-                continue
-            # 为需要规划路径的机器人创建结果容器
-            update = hephaestus_pb2.RobotAlgorithmUpdates()
-            # 传入机器人ID
-            update.robotId = action.robotId
-            # 添加机器人路径，每个路径点的类型为MapCell
-            for cell in action.cells:
-                update.cells.append(cell)
-                update.direction = 0
-            # apply rotation
-            if action.direction != 0:
+            for action in algorithm_result.actions:
+                # 为需要规划路径的机器人创建结果容器
+                update = hephaestus_pb2.RobotAlgorithmUpdates()
+                # 传入机器人ID
+                update.robotId = action.robotId
+                # 添加机器人路径，每个路径点的类型为MapCell
+                for cell in action.cells:
+                    update.cells.append(cell)
+                # apply rotation
                 update.direction = action.direction
-            # 将机器人结果容器添加到返回结果对象上
-            result.robotAlgorithmUpdates.append(update)
+                # 将机器人结果容器添加到返回结果对象上
+                result.robotAlgorithmUpdates.append(update)
 
-        print(result)
-        return result
+            print(f"[TRACE] Result generated for timestamp {request.time}")
+            return result
+        except Exception as e:
+            print(f"[ERROR] Exception occurred at timestamp {request.time}:")
+            import traceback
+            traceback.print_exc()
+            raise  # Re-raise the exception after logging
 
 
 def serve(service=AlgoService()):

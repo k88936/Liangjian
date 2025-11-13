@@ -1,12 +1,32 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
+from abc import ABC
 from dataclasses import dataclass
 from typing import Protocol, Sequence, Tuple, List
 from collections import namedtuple
 
-# Type aliases
-Index = namedtuple("Index", ['x', 'y'])
-Position = namedtuple('Position', ['x', 'y'])
+
+# Type alias
+# class Index(Tuple[int,int]):
+#     def x(self) -> int:
+#         return self[0]
+#
+#     def y(self) -> int:
+#         return self[1]
+#
+#
+# class Position(Tuple[float, float]):
+#     def x(self) -> float:
+#         return self[0]
+#
+#     def y(self) -> float:
+#         return self[1]
+#
+#     pass
+
+
+Index = Tuple[int, int]
+Position = Tuple[float, float]
 
 
 # direction:
@@ -15,10 +35,8 @@ Position = namedtuple('Position', ['x', 'y'])
 #       1
 
 
-
 @dataclass(frozen=True)
 class MapCell:
-    floorId: int
     cellCode: str
     index: Index
     location: Position
