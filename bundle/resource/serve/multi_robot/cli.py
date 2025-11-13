@@ -28,14 +28,8 @@ def _loop(sim, mapId, replay=False, record=False):
     return 0.0
 
 
-def go():
-    parser = argparse.ArgumentParser()
+def go(replay, record):
 
-    parser.add_argument("--record", action="store_true", help="whether record algorithm results")
-    parser.add_argument("--replay", action="store_true", help="whether replay recorded results")
-
-    args = parser.parse_args()
-    
     num = 1
     avgscore = 0
     start_time = time.time()
@@ -44,7 +38,7 @@ def go():
     for j in range(taskLength):
         sim.register(j)
         print('第%s个地图开始\n' % str(j+1))
-        result = _loop(sim, j+1, replay=args.replay, record=args.record)
+        result = _loop(sim, j+1, replay=replay, record=record)
         if result == 0:
             print('第%s个地图结束，成绩为：%s\n' % (str(j+1), result))
         else:
@@ -58,7 +52,3 @@ def go():
     print('(score:', avgscore, ') \n')
     
     return avgscore
-
-
-if __name__ == '__main__':
-    go()

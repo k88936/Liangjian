@@ -1,12 +1,12 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
-from typing import Protocol, Sequence, Tuple
+from typing import Protocol, Sequence, Tuple, List
+from collections import namedtuple
 
 # Type aliases
-Index = Tuple[int, int]
-Position = Tuple[float, float]
-DirectionMask = Tuple[int, int, int, int]
+Index = namedtuple("Index", ['x', 'y'])
+Position = namedtuple('Position', ['x', 'y'])
 
 
 # direction:
@@ -14,16 +14,19 @@ DirectionMask = Tuple[int, int, int, int]
 #   2       4
 #       1
 
-class MapCell(Protocol):
+
+
+@dataclass(frozen=True)
+class MapCell:
     floorId: int
     cellCode: str
     index: Index
     location: Position
-    directionCost: DirectionMask
     cellType: str  # BLOCKED_CELL or not
 
 
-class Robot(Protocol):
+@dataclass(frozen=True)
+class Robot:
     robotId: int
     locationIndex: Index
     nextIndex: Index
@@ -32,7 +35,8 @@ class Robot(Protocol):
     assignedPath: Sequence[MapCell]
 
 
-class Request(Protocol):
+@dataclass(frozen=True)
+class Request:
     time: int
     robots: Sequence[Robot]
     mapCells: Sequence[MapCell]
@@ -43,16 +47,11 @@ class Request(Protocol):
 
 @dataclass
 class RobotAction:
-    def __init__(self, robot_id: int, cells: Sequence[MapCell], direction: int = 0):
-        self.robotId = robot_id
-        self.cells = cells
-        self.direction = direction
+    robotId: int
+    cells: List[MapCell]
+    direction: int = 0
 
 
 @dataclass
 class AlgorithmResult:
-    def __init__(
-            self,
-            actions: Sequence[RobotAction],
-    ):
-        self.paths = actions
+    actions: List[RobotAction]

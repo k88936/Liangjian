@@ -62,7 +62,7 @@ class AlgoService(hephaestus_pb2_grpc.RobotAlgorithmServiceServicer):
         # 初始化返回结果对象
         result = hephaestus_pb2.RobotAlgorithmResult()
 
-        for action in algorithm_result.paths:
+        for action in algorithm_result.actions:
             if len(action.cells) == 1:
                 continue
             # 为需要规划路径的机器人创建结果容器

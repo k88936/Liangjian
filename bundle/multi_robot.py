@@ -10,6 +10,7 @@ from bundle.resource.serve.multi_robot.web import run
 
 def open_web():
     webpath = 'http://127.0.0.1:10025/index_old.html'
+    print(webpath)
     webbrowser.open(webpath, new=2, autoraise=True)
 
 

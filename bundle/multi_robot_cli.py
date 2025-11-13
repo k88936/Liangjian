@@ -1,10 +1,11 @@
-from resource.serve.multi_robot_load.web import run
 from threading import Thread
 import webbrowser
 # import os
 import subprocess
 # from urllib.request import pathname2url
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+
+from bundle.resource.serve.multi_robot.cli import go
 
 
 def open_web():
@@ -20,29 +21,9 @@ def open_hephaestus():
 def run_command(command):
     subprocess.Popen(command, shell=True)
 
-
-def startServer(port):
-    Handler = SimpleHTTPRequestHandler
-    Handler.extensions_map.update({
-        ".js": "application/javascript",
-    })
-    server = ThreadingHTTPServer(('', port), Handler)
-    # server = ThreadingHTTPServer(('', port), SimpleHTTPRequestHandler)
-
-    print("Start server at port", port)
-    server.serve_forever()
-
-
-def start(port):
-    thread = Thread(target=startServer, args=[port])
-    thread.start()
-
-
 def main():
     open_hephaestus()
-    start(10025)
-    open_web()
-    run()
+    go(replay=False,record=True)
 
 
 if __name__ == '__main__':
