@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 from abc import ABC
 from dataclasses import dataclass
-from typing import Protocol, Sequence, Tuple, List
-from collections import namedtuple
+from typing import Sequence, Tuple, List
 
 
 # Type alias
