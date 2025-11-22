@@ -1,17 +1,17 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import time
 import functools
+import time
+from dataclasses import dataclass
 from typing import List
 
 import numpy as np
 
-from dataclasses import dataclass
-from type import Index, Position, Request, AlgorithmResult, RobotAction, MapCell, Robot
-
-BLOCKED = 1000
-PASSABLE = 1
+from d_star_lite import DStarLite
+from grid import OccupancyGridMap
+from type import Index, Request, AlgorithmResult, RobotAction, MapCell, Robot
+from type import OBSTACLE, UNOCCUPIED
 
 STRAIGHT_BONUS = 3
 np.set_printoptions(precision=2, suppress=True, linewidth=1000)
@@ -61,7 +61,6 @@ def timing(func):
 class RobotState:
     inner: Robot
     targets: List[int]
-    memoryOverlayCost: np.ndarray
 
 
 class Dfs:
@@ -90,8 +89,6 @@ class Dfs:
             if rbt.assignedPath.__len__() > 1:
                 last_dir = diff2dir(rbt.assignedPath[-2].index, rbt.assignedPath[-1].index)
 
-
-
             direction = self.getNextDirection(p, rbt.destIndex, last_dir)
             if direction == 0:
                 break
@@ -100,6 +97,7 @@ class Dfs:
             path = [self.index2cell(p), self.index2cell(apd)]
             ttt = RobotAction(rbt.robotId, path)
             actions.append(ttt)
+
             break
         result = AlgorithmResult(actions)
 
@@ -112,16 +110,17 @@ class Dfs:
         for robot in request.robots:
             # current cell is already in assignedPath
             (cx, cy) = robot.locationIndex
-            self.robotOverlayCostMatrix[cx, cy] = BLOCKED
+            self.robotOverlayCostMatrix[cx, cy] = OBSTACLE
             for cell in robot.assignedPath[1:]:
                 (ix, iy) = cell.index
-                self.robotOverlayCostMatrix[ix, iy] = BLOCKED
+                self.robotOverlayCostMatrix[ix, iy] = OBSTACLE
 
     robotStates: List[RobotState] = []
     @timing
     def init_robots(self, request: Request):
         for robot in request.robots:
-            state = RobotState(robot, [] ,np.zeros((self.mapWidth, self.mapHeight), dtype=np.int16))
+            pathfinder=DStarLite(self.structureCostMatrix,robot.position,robot.destIndex)
+            state = RobotState(robot, [] , )
             self.robotStates.append(state)
 
     @timing
@@ -134,16 +133,15 @@ class Dfs:
     def index2cell(self, index: Index):
         return self.id2cell[self.index2id(index)]
 
-    structureCostMatrix: np.ndarray = None
+    structureCostMatrix: OccupancyGridMap
     id2cell: List[MapCell] = None
-
     @timing
     def build_map(self, request: Request):
-        self.structureCostMatrix = np.zeros((self.mapWidth, self.mapHeight), dtype=np.int16)
+        self.structureCostMatrix = OccupancyGridMap(self.mapWidth, self.mapHeight)
         for cell in request.mapCells:
             (ix, iy) = cell.index
-            cost = BLOCKED if cell.cellType == 'BLOCKED_CELL' else PASSABLE
-            self.structureCostMatrix[ix, iy] = cost
+            cost = OBSTACLE if cell.cellType == 'BLOCKED_CELL' else UNOCCUPIED
+            self.structureCostMatrix.set_obstacle(cost)
 
         self.id2cell = [None for _ in range(self.mapWidth * self.mapHeight)]  # type: ignore
         for cell in request.mapCells:
@@ -183,7 +181,7 @@ class Dfs:
                 start_idx = self.index2id((sx, sy))
 
                 # Skip blocked starting cells
-                if flat_structure[start_idx] == BLOCKED:
+                if flat_structure[start_idx] == OBSTACLE:
                     continue
 
                 # Initialize BFS
@@ -213,7 +211,7 @@ class Dfs:
                             neighbor_idx = self.index2id((nx, ny))
 
                             # Check if neighbor is passable
-                            if flat_structure[neighbor_idx] != BLOCKED:
+                            if flat_structure[neighbor_idx] != OBSTACLE:
                                 # Mark as visited
                                 visited[nx, ny] = True
 

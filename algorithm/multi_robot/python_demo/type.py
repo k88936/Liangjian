@@ -3,6 +3,8 @@
 from abc import ABC
 from dataclasses import dataclass
 from typing import Sequence, Tuple, List
+OBSTACLE = 255
+UNOCCUPIED = 0
 
 Index = Tuple[int, int]
 Position = Tuple[float, float]

@@ -1,11 +1,9 @@
 import numpy as np
+
 from utils import get_movements_4n, heuristic, Vertices, Vertex
 from typing import Dict, List
 
-OBSTACLE = 255
-UNOCCUPIED = 0
-
-
+from type import UNOCCUPIED, OBSTACLE
 class OccupancyGridMap:
     def __init__(self, x_dim, y_dim):
         """

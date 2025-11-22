@@ -4,9 +4,8 @@ import numpy as np
 from utils import heuristic, Vertex, Vertices
 from typing import Dict, List
 
-OBSTACLE = 255
-UNOCCUPIED = 0
 
+from type import UNOCCUPIED, OBSTACLE
 
 class DStarLite:
     def __init__(self, map: OccupancyGridMap, s_start: (int, int), s_goal: (int, int),cost, view_range=5):
@@ -137,7 +136,6 @@ class DStarLite:
         self.compute_shortest_path()
 
         while self.s_start != self.s_goal:
-
             succ = self.slam_map.succ(self.s_start, avoid_obstacles=False)
             min_s = float('inf')
             arg_min = None
@@ -153,8 +151,6 @@ class DStarLite:
             path.append(self.s_start)
             # scan graph for changed costs
             changed_edges_with_old_cost = self.new_edges_and_old_costs
-            self.new_edges_and_old_costs = None
-            #print("len path: {}".format(len(path)))
             # if any edge costs changed
             if changed_edges_with_old_cost:
                 self.k_m += heuristic(self.s_last, self.s_start)
@@ -181,5 +177,4 @@ class DStarLite:
                                 self.rhs[u] = min_s
                             self.update_vertex(u)
             self.compute_shortest_path()
-        print("path found!")
-        return path, self.g, self.rhs
+        return self.g, self.rhs
