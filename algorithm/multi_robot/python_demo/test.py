@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Import service and message types
-from algoService import AlgoService, serve
+from main import AlgoService, serve
 from type import Request, AlgorithmResult, RobotAction, MapCell
 
 

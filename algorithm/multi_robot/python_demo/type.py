@@ -4,29 +4,8 @@ from abc import ABC
 from dataclasses import dataclass
 from typing import Sequence, Tuple, List
 
-
-# Type alias
-# class Index(Tuple[int,int]):
-#     def x(self) -> int:
-#         return self[0]
-#
-#     def y(self) -> int:
-#         return self[1]
-#
-#
-# class Position(Tuple[float, float]):
-#     def x(self) -> float:
-#         return self[0]
-#
-#     def y(self) -> float:
-#         return self[1]
-#
-#     pass
-
-
 Index = Tuple[int, int]
 Position = Tuple[float, float]
-
 
 # direction:
 #       3
