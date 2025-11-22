@@ -4,33 +4,34 @@ import numpy as np
 from utils import heuristic, Vertex, Vertices
 from typing import Dict, List
 
-
 from type import UNOCCUPIED, OBSTACLE
 
+
 class DStarLite:
-    def __init__(self, map: OccupancyGridMap, s_start: (int, int), s_goal: (int, int),cost, view_range=5):
+    def __init__(self, map: OccupancyGridMap, s_start: (int, int), s_goal: (int, int), cost, view_range=5):
         """
         :param map: the ground truth map of the environment provided by gui
         :param s_start: start location
         :param s_goal: end location
         """
         self.ground_truth_map = map
-        self.new_edges_and_old_costs = None
+        self.raw_cost = cost.copy()
+        self.view_range = view_range
 
         # algorithm start
-        self.s_start = s_start
-        self.s_goal = s_goal
-        self.s_last = s_start
+        self.s_start = (s_start[0], s_start[1])
+        self.s_goal = (s_goal[0], s_goal[1])
+        self.s_last = (self.s_start[0], self.s_start[1])
+
         self.k_m = 0  # accumulation
         self.U = PriorityQueue()
-        self.rhs = np.copy(cost)
-        self.g = np.copy(cost)
+        self.rhs = self.raw_cost.copy()
 
-        self.slam_map = map.copy()
+        self.g = self.raw_cost.copy()
+        self.g[self.s_start] = np.inf
 
-        self.rhs[self.s_goal] = 0
-        self.U.insert(self.s_goal, Priority(heuristic(self.s_start, self.s_goal), 0))
-        self.view_range = view_range
+        self.slam_map = self.ground_truth_map.copy()
+
 
     def calculate_key(self, s: (int, int)):
         """
@@ -66,7 +67,6 @@ class DStarLite:
 
     def compute_shortest_path(self):
         while self.U.top_key() < self.calculate_key(self.s_start) or self.rhs[self.s_start] > self.g[self.s_start]:
-            assert (self.rhs[self.s_start] != float('inf')), "There is no known path!"
             u = self.U.top()
             k_old = self.U.top_key()
             k_new = self.calculate_key(u)
@@ -98,8 +98,8 @@ class DStarLite:
                             self.rhs[s] = min_s
                     self.update_vertex(u)
 
-
-    def rescan(self, global_position: (int, int)):
+    def rescan(self):
+        global_position = self.s_start
         def update_changed_edge_costs(local_grid: Dict) -> Vertices:
             vertices = Vertices()
             for node, value in local_grid.items():
@@ -128,53 +128,50 @@ class DStarLite:
                                                                     view_range=self.view_range)
         return update_changed_edge_costs(local_grid=local_observation)
 
-    def move_and_replan(self, robot_position: (int, int)):
-        path = [robot_position]
-        self.new_edges_and_old_costs = self.rescan(robot_position)
+    def replan(self, robot_position: (int, int)):
         self.s_start = robot_position
-        self.s_last = self.s_start
-        self.compute_shortest_path()
 
-        while self.s_start != self.s_goal:
-            succ = self.slam_map.succ(self.s_start, avoid_obstacles=False)
-            min_s = float('inf')
-            arg_min = None
-            for s_ in succ:
-                temp = self.c(self.s_start, s_) + self.g[s_]
-                if temp < min_s:
-                    min_s = temp
-                    arg_min = s_
+        if self.s_start == self.s_goal:
+            return None
 
-            ### algorithm sometimes gets stuck here for some reason !!! FIX
-            assert arg_min
-            self.s_start = arg_min
-            path.append(self.s_start)
-            # scan graph for changed costs
-            changed_edges_with_old_cost = self.new_edges_and_old_costs
-            # if any edge costs changed
-            if changed_edges_with_old_cost:
-                self.k_m += heuristic(self.s_last, self.s_start)
-                self.s_last = self.s_start
+        # scan graph for changed costs
+        changed_edges_with_old_cost = self.rescan()
+        if not changed_edges_with_old_cost.isEmpty():
+            self.k_m += heuristic(self.s_last, self.s_start)
+            self.s_last = self.s_start
 
-                # for all directed edges (u,v) with changed edge costs
-                vertices = changed_edges_with_old_cost.vertices
-                for vertex in vertices:
-                    v = vertex.pos
-                    succ_v = vertex.edges_and_c_old
-                    for u, c_old in succ_v.items():
-                        c_new = self.c(u, v)
-                        if c_old > c_new:
-                            if u != self.s_goal:
-                                self.rhs[u] = min(self.rhs[u], self.c(u, v) + self.g[v])
-                        elif self.rhs[u] == c_old + self.g[v]:
-                            if u != self.s_goal:
-                                min_s = float('inf')
-                                succ_u = self.slam_map.succ(vertex=u)
-                                for s_ in succ_u:
-                                    temp = self.c(u, s_) + self.g[s_]
-                                    if min_s > temp:
-                                        min_s = temp
-                                self.rhs[u] = min_s
-                            self.update_vertex(u)
+            # for all directed edges (u,v) with changed edge costs
+            vertices = changed_edges_with_old_cost.vertices
+            for vertex in vertices:
+                v = vertex.pos
+                succ_v = vertex.edges_and_c_old
+                for u, c_old in succ_v.items():
+                    c_new = self.c(u, v)
+                    if c_old > c_new:
+                        if u != self.s_goal:
+                            self.rhs[u] = min(self.rhs[u], self.c(u, v) + self.g[v])
+                    elif self.rhs[u] == c_old + self.g[v]:
+                        if u != self.s_goal:
+                            min_s = float('inf')
+                            succ_u = self.slam_map.succ(vertex=u)
+                            for s_ in succ_u:
+                                temp = self.c(u, s_) + self.g[s_]
+                                if min_s > temp:
+                                    min_s = temp
+                            self.rhs[u] = min_s
+                        self.update_vertex(u)
+
             self.compute_shortest_path()
-        return self.g, self.rhs
+
+        if self.rhs[self.s_start] == float('inf'):
+            return None
+
+        min_s = float('inf')
+        arg_min = None
+        for s_ in self.slam_map.succ(self.s_start,avoid_obstacles=False):
+            temp = self.c(self.s_start, s_) + self.g[s_]
+            if temp < min_s:
+                min_s = temp
+                arg_min = s_
+
+        return arg_min

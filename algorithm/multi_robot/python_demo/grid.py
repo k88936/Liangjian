@@ -1,21 +1,13 @@
 import numpy as np
 
-from utils import get_movements_4n, heuristic, Vertices, Vertex
+from utils import get_movements, heuristic, Vertices, Vertex
 from typing import Dict, List
 
 from type import UNOCCUPIED, OBSTACLE
+
+
 class OccupancyGridMap:
     def __init__(self, x_dim, y_dim):
-        """
-        set initial values for the map occupancy grid
-        |----------> y, column
-        |           (x=0,y=2)
-        |
-        V (x=2, y=0)
-        x, row
-        :param x_dim: dimension in the x direction
-        :param y_dim: dimension in the y direction
-        """
         self.x_dim = x_dim
         self.y_dim = y_dim
 
@@ -30,13 +22,8 @@ class OccupancyGridMap:
         :param pos: cell position we wish to check
         :return: True if cell is occupied with obstacle, False else
         """
-        (x, y) = (round(pos[0]), round(pos[1]))  # make sure pos is int
-        (row, col) = (x, y)
-
-        # if not self.in_bounds(cell=(x, y)):
-        #    raise IndexError("Map index out of bounds")
-
-        return self.occupancy_grid_map[row][col] == UNOCCUPIED
+        (x, y) = pos
+        return self.occupancy_grid_map[x, y] == UNOCCUPIED
 
     def in_bounds(self, cell: (int, int)) -> bool:
         """
@@ -66,10 +53,7 @@ class OccupancyGridMap:
         """
         (x, y) = vertex
 
-        movements = get_movements_4n(x=x, y=y)
-
-        # not needed. Just makes aesthetics to the path
-        if (x + y) % 2 == 0: movements.reverse()
+        movements = get_movements(x=x, y=y)
 
         filtered_movements = self.filter(neighbors=movements, avoid_obstacles=avoid_obstacles)
         return list(filtered_movements)
@@ -113,25 +97,28 @@ class OccupancyGridMap:
         new_map.occupancy_grid_map = np.copy(self.occupancy_grid_map)
         return new_map
 
+    def get_map(self):
+        return self.occupancy_grid_map
 
-class SLAM:
-    def __init__(self, map: OccupancyGridMap, view_range: int):
-        self.ground_truth_map = map
-        self.slam_map = map.copy()
-        self.view_range = view_range
 
-    def set_ground_truth_map(self, gt_map: OccupancyGridMap):
-        self.ground_truth_map = gt_map
+class DynamicOccupancyGridMap(OccupancyGridMap):
+    def __init__(self, x_dim, y_dim):
+        super().__init__(x_dim, y_dim)
+        self.dynamic = np.zeros(self.map_extents, dtype=np.int32)
+        self.dynamic_mask = 0
 
-    def c(self, u: (int, int), v: (int, int)) -> float:
-        """
-        calcuclate the cost between nodes
-        :param u: from vertex
-        :param v: to vertex
-        :return: euclidean distance to traverse. inf if obstacle in path
-        """
-        if not self.slam_map.is_unoccupied(u) or not self.slam_map.is_unoccupied(v):
-            return float('inf')
-        else:
-            return heuristic(u, v)
+    def is_unoccupied(self, pos: (int, int)) -> bool:
+        (x, y) = pos
+        if not super().is_unoccupied(pos):
+            return False
+        return self.dynamic[x, y] == 0 or self.dynamic[x, y] == self.dynamic_mask
 
+    def clear_dynamic(self):
+        self.dynamic = np.zeros(self.map_extents, dtype=np.int32)
+
+    def set_dynamic_mask(self, mask: int):
+        self.dynamic_mask = mask
+
+    def set_dynamic_obstacle(self, pos: (int, int), mask: int):
+        (x, y) = pos
+        self.dynamic[x, y] = mask
