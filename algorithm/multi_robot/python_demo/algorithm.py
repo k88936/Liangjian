@@ -10,7 +10,7 @@ import numpy as np
 from dataclasses import dataclass
 from type import Index, Position, Request, AlgorithmResult, RobotAction, MapCell, Robot
 
-BLOCKED = 10000
+BLOCKED = 1000
 PASSABLE = 1
 
 STRAIGHT_BONUS = 3
@@ -61,7 +61,7 @@ def timing(func):
 class RobotState:
     inner: Robot
     targets: List[int]
-    last_dir: int = 0
+    memoryOverlayCost: np.ndarray
 
 
 class Dfs:
@@ -79,9 +79,9 @@ class Dfs:
             return AlgorithmResult([])
         if not self.isRobotLoaded:
             self.isRobotLoaded = True
-            self.reload_robot_state(request)
+            self.init_robots(request)
 
-        self.load_robot_matrix(request)
+        self.load_robot_overlay_cost(request)
 
         actions = []
         for rbt in request.robots:
@@ -89,6 +89,9 @@ class Dfs:
             last_dir = 0
             if rbt.assignedPath.__len__() > 1:
                 last_dir = diff2dir(rbt.assignedPath[-2].index, rbt.assignedPath[-1].index)
+
+
+
             direction = self.getNextDirection(p, rbt.destIndex, last_dir)
             if direction == 0:
                 break
@@ -102,25 +105,23 @@ class Dfs:
 
         return result
 
-    robotCostMatrix: np.ndarray
-
+    robotOverlayCostMatrix: np.ndarray
     @timing
-    def load_robot_matrix(self, request: Request):
-        self.robotCostMatrix = np.zeros((request.width, request.height), dtype=int)
+    def load_robot_overlay_cost(self, request: Request):
+        self.robotOverlayCostMatrix = np.zeros((request.width, request.height), dtype=int)
         for robot in request.robots:
             # current cell is already in assignedPath
             (cx, cy) = robot.locationIndex
-            self.robotCostMatrix[cx, cy] = BLOCKED
+            self.robotOverlayCostMatrix[cx, cy] = BLOCKED
             for cell in robot.assignedPath[1:]:
                 (ix, iy) = cell.index
-                self.robotCostMatrix[ix, iy] = BLOCKED
+                self.robotOverlayCostMatrix[ix, iy] = BLOCKED
 
     robotStates: List[RobotState] = []
-
     @timing
-    def reload_robot_state(self, request: Request):
+    def init_robots(self, request: Request):
         for robot in request.robots:
-            state = RobotState(robot, [])
+            state = RobotState(robot, [] ,np.zeros((self.mapWidth, self.mapHeight), dtype=np.int16))
             self.robotStates.append(state)
 
     @timing
@@ -138,7 +139,7 @@ class Dfs:
 
     @timing
     def build_map(self, request: Request):
-        self.structureCostMatrix = np.zeros((self.mapWidth, self.mapHeight), dtype=np.float32)
+        self.structureCostMatrix = np.zeros((self.mapWidth, self.mapHeight), dtype=np.int16)
         for cell in request.mapCells:
             (ix, iy) = cell.index
             cost = BLOCKED if cell.cellType == 'BLOCKED_CELL' else PASSABLE
