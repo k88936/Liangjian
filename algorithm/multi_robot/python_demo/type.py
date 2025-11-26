@@ -25,12 +25,15 @@ class MapCell:
 
 @dataclass(frozen=True)
 class Robot:
+
     robotId: int
     locationIndex: Index
     nextIndex: Index
     destIndex: Index
     position: float  # 机器人在两个格子中间的状态取值在  0-1  之间
     assignedPath: Sequence[MapCell]
+    direction: int
+    endDirection: int
 
 
 @dataclass(frozen=True)

@@ -18,7 +18,7 @@ np.set_printoptions(precision=2, suppress=True, linewidth=1000)
 @dataclass
 class RobotState:
     inner: Robot
-    targets: List[int]
+    # targets: List[int]
     pathfinder: DStarLite
 
 
@@ -43,23 +43,26 @@ class Dfs:
 
         actions = []
         for rbt in request.robots:
-            if rbt.robotId>4:
-                break
+            # if rbt.robotId>4:
+            #     break
+            # if len(actions) > 16:
+            #     break
             p = rbt.assignedPath[-1].index
             status = self.robotStates[rbt.robotId]
             pppp = (p[0], p[1])
             self.obstacleMatrix.set_dynamic_mask(rbt.robotId)
             dist = status.pathfinder.replan(pppp)
 
-            print("-->> ",rbt.robotId)
-            print(status.pathfinder.slam_map.get_map().T)
-            print(status.pathfinder.g.T)
+            # print("-->> ",rbt.robotId)
+            # print(status.pathfinder.slam_map.get_map().T)
+            # print(status.pathfinder.g.T)
             if not dist:
+                if rbt.direction != rbt.endDirection:
+                    actions.append(RobotAction(rbt.robotId, [], rbt.endDirection))
                 continue
             path = [self.index2cell(p), self.index2cell(dist)]
             ttt = RobotAction(rbt.robotId, path)
             actions.append(ttt)
-
 
         result = AlgorithmResult(actions)
         print("--------------------------------")
@@ -69,22 +72,22 @@ class Dfs:
     def load_robot_overlay_cost(self, request: Request):
         self.obstacleMatrix.clear_dynamic()
         for robot in request.robots:
-            # current cell is already in assignedPath
             self.obstacleMatrix.set_dynamic_obstacle(robot.locationIndex, robot.robotId)
-            for cell in robot.assignedPath[1:]:
-                self.obstacleMatrix.set_dynamic_obstacle(cell.index,robot.robotId)
+
+            # for cell in robot.assignedPath[:4]:
+            #     self.obstacleMatrix.set_dynamic_obstacle(cell.index, robot.robotId)
 
     robotStates: List[RobotState] = None
 
     @timing
     def init_robots(self, request: Request):
-        self.robotStates =[None for _ in range(self.mapWidth * self.mapHeight)] # type: ignore
+        self.robotStates = [None for _ in range(self.mapWidth * self.mapHeight)]  # type: ignore
         for robot in request.robots:
             end_idx = self.index2id(robot.destIndex)
             pathfinder = DStarLite(self.obstacleMatrix, robot.locationIndex, robot.destIndex,
                                    self.APSP_costMatrix[end_idx])
-            state = RobotState(robot, [], pathfinder)
-            self.robotStates[robot.robotId]= state
+            state = RobotState(robot, pathfinder)
+            self.robotStates[robot.robotId] = state
 
     @timing
     def init(self, request: Request):

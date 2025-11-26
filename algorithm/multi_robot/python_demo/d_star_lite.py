@@ -8,14 +8,13 @@ from type import UNOCCUPIED, OBSTACLE
 
 
 class DStarLite:
-    def __init__(self, map: OccupancyGridMap, s_start: (int, int), s_goal: (int, int), cost, view_range=5):
+    def __init__(self, map: OccupancyGridMap, s_start: (int, int), s_goal: (int, int), cost, view_range=2):
         """
         :param map: the ground truth map of the environment provided by gui
         :param s_start: start location
         :param s_goal: end location
         """
         self.ground_truth_map = map
-        self.raw_cost = cost.copy()
         self.view_range = view_range
 
         # algorithm start
@@ -25,13 +24,10 @@ class DStarLite:
 
         self.k_m = 0  # accumulation
         self.U = PriorityQueue()
-        self.rhs = self.raw_cost.copy()
-
-        self.g = self.raw_cost.copy()
-        self.g[self.s_start] = np.inf
+        self.rhs = cost.copy()
+        self.g = cost.copy()
 
         self.slam_map = self.ground_truth_map.copy()
-
 
     def calculate_key(self, s: (int, int)):
         """
@@ -66,7 +62,13 @@ class DStarLite:
             self.U.remove(u)
 
     def compute_shortest_path(self):
-        while self.U.top_key() < self.calculate_key(self.s_start) or self.rhs[self.s_start] > self.g[self.s_start]:
+        iter_count = 0
+        while True:
+            if self.U.empty():
+                break
+            iter_count += 1
+            if iter_count > 10:
+                break
             u = self.U.top()
             k_old = self.U.top_key()
             k_new = self.calculate_key(u)
@@ -100,6 +102,7 @@ class DStarLite:
 
     def rescan(self):
         global_position = self.s_start
+
         def update_changed_edge_costs(local_grid: Dict) -> Vertices:
             vertices = Vertices()
             for node, value in local_grid.items():
@@ -142,33 +145,33 @@ class DStarLite:
 
             # for all directed edges (u,v) with changed edge costs
             vertices = changed_edges_with_old_cost.vertices
+            updated = []
             for vertex in vertices:
                 v = vertex.pos
                 succ_v = vertex.edges_and_c_old
                 for u, c_old in succ_v.items():
-                    c_new = self.c(u, v)
-                    if c_old > c_new:
-                        if u != self.s_goal:
-                            self.rhs[u] = min(self.rhs[u], self.c(u, v) + self.g[v])
-                    elif self.rhs[u] == c_old + self.g[v]:
-                        if u != self.s_goal:
-                            min_s = float('inf')
-                            succ_u = self.slam_map.succ(vertex=u)
-                            for s_ in succ_u:
-                                temp = self.c(u, s_) + self.g[s_]
-                                if min_s > temp:
-                                    min_s = temp
-                            self.rhs[u] = min_s
-                        self.update_vertex(u)
+                    updated.append((u, v, c_old))
+                    updated.append((v, u, c_old))
 
+            for u, v, c_old in updated:
+                c_new = self.c(u, v)
+                if c_old > c_new:
+                    if u != self.s_goal:
+                        self.rhs[u] = min(self.rhs[u], self.c(u, v) + self.g[v])
+                elif self.rhs[u] == c_old + self.g[v]:
+                    if u != self.s_goal:
+                        min_s = float('inf')
+                        for s_ in self.slam_map.succ(vertex=u):
+                            temp = self.c(u, s_) + self.g[s_]
+                            if min_s > temp:
+                                min_s = temp
+                        self.rhs[u] = min_s
+                self.update_vertex(u)
             self.compute_shortest_path()
-
-        if self.rhs[self.s_start] == float('inf'):
-            return None
 
         min_s = float('inf')
         arg_min = None
-        for s_ in self.slam_map.succ(self.s_start,avoid_obstacles=False):
+        for s_ in self.slam_map.succ(self.s_start, avoid_obstacles=False):
             temp = self.c(self.s_start, s_) + self.g[s_]
             if temp < min_s:
                 min_s = temp

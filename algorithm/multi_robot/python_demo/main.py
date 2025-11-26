@@ -34,11 +34,6 @@ class AlgoService(hephaestus_pb2_grpc.RobotAlgorithmServiceServicer):
         #   request.width       地图场景宽度
         #   request.height      地图场景高度
 
-        # 任务信息 Task 说明
-        #     int64 robotId = 1;
-        #     repeated int32 index = 2;             例：[1,1]
-        #     repeated int32 dest = 3;              例：[1,1]
-
         # 地图点 MapCell 说明
         #     int32 floorId = 1;
         #     string cellCode = 2;

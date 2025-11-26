@@ -10,17 +10,19 @@ class FakeAlgorithm:
 
     def run(self, request: Request) -> AlgorithmResult:
         # Dump the incoming message to stdout
-        print("FakeAlgorithm.run called")
-        x = 19
-        y = 0
-        i = y + 20 * x
-        print(request.mapCells[i].location)
-
-        print(
-            f"time={request.time}, robots={len(request.robots)}, "
-            f"mapCells={len(request.mapCells)}, "
-            f"isInit={request.isInit}, size={request.width}x{request.height}"
-        )
+        # print("FakeAlgorithm.run called")
+        # x = 19
+        # y = 0
+        # i = y + 20 * x
+        # print(request.mapCells[i].location)
+        #
+        # print(
+        #     f"time={request.time}, robots={len(request.robots)}, "
+        #     f"mapCells={len(request.mapCells)}, "
+        #     f"isInit={request.isInit}, size={request.width}x{request.height}"
+        # )
+        print(request.robots[0])
+        print(request.robots[0].endDirection)
         return AlgorithmResult([RobotAction(1, [], 2)])
 
 

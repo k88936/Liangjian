@@ -154,3 +154,5 @@ class PriorityQueue:
         # to its final resting place (by sifting its parents down).
         self.heap[pos] = newitem
         self._siftdown(startpos, pos)
+    def empty(self):
+        return len(self.heap) == 0
